@@ -13,7 +13,8 @@
 
 #include "render.h"
 
-int main() {
+int main()
+{
 
 	bool validation_layers_enabled = true;
 
@@ -35,64 +36,65 @@ int main() {
 	check_validation_layer_support(validation_layers_enabled, validation_layers, validation_layer_count);
 	check_instance_extension_support(instance_extensions, instance_extension_count);
 
-	GLFWwindow *window                      = create_window();
+	GLFWwindow *window = create_window();
 
-	VkInstance instance                     = create_instance(validation_layers_enabled, validation_layer_count, validation_layers, instance_extension_count, instance_extensions);
-	VkSurfaceKHR surface                    = create_surface(window, instance);
+	VkInstance instance = create_instance(validation_layers_enabled, validation_layer_count, validation_layers, instance_extension_count, instance_extensions);
+	VkSurfaceKHR surface = create_surface(window, instance);
 	VkDebugUtilsMessengerEXT debugMessenger = create_debug_messenger(validation_layers_enabled, instance);
 
 	// print_physical_device_info(instance, surface, device_extension_count, device_extensions);
 
-	VkPhysicalDevice physicalDevice         = create_physical_device(instance, surface, device_extension_count, device_extensions);
-    struct QueueFamilyIndices indices 		= create_queue_families(physicalDevice, surface);
-	VkSurfaceFormatKHR surfaceFormat 		= create_format(physicalDevice, surface);
-	VkPresentModeKHR presentMode 			= create_present_mode(physicalDevice, surface); // move inside swpachain creation?
-	VkSurfaceCapabilitiesKHR capabilities 	= create_capabilities(physicalDevice, surface);
+	VkPhysicalDevice physicalDevice = create_physical_device(instance, surface, device_extension_count, device_extensions);
+	struct QueueFamilyIndices indices = create_queue_families(physicalDevice, surface);
+	VkSurfaceFormatKHR surfaceFormat = create_format(physicalDevice, surface);
+	VkPresentModeKHR presentMode = create_present_mode(physicalDevice, surface); // move inside swpachain creation?
+	VkSurfaceCapabilitiesKHR capabilities = create_capabilities(physicalDevice, surface);
 
-	VkDevice device 						= create_device(validation_layers_enabled, validation_layers, validation_layer_count, physicalDevice, indices, device_extension_count, device_extensions);
-	VkQueue graphicsQueue 					= create_device_queue(device, indices.graphicsFamily, 0);
-	VkQueue presentQueue 					= create_device_queue(device, indices.presentFamily, 0);
+	VkDevice device = create_device(validation_layers_enabled, validation_layers, validation_layer_count, physicalDevice, indices, device_extension_count, device_extensions);
+	VkQueue graphicsQueue = create_device_queue(device, indices.graphicsFamily, 0);
+	VkQueue presentQueue = create_device_queue(device, indices.presentFamily, 0);
 
-	VkExtent2D extent 						= create_swap_extent(window, capabilities);
-	uint32_t imageCount 					= create_image_count(capabilities);
-	VkSwapchainKHR swapChain 				= create_swapchain(device, surface, imageCount, surfaceFormat, extent, indices, capabilities, presentMode);
-	VkImageView *swapChainImageViews		= create_swapchain_image_views(device, swapChain, surfaceFormat.format, imageCount);
-	VkRenderPass renderPass 				= create_render_pass(device, surfaceFormat.format);
-	VkPipelineLayout pipelineLayout			= create_pipeline_layout(device);
-    VkPipeline graphicsPipeline				= create_graphics_pipeline(device, extent, renderPass, pipelineLayout);
-	VkFramebuffer *swapChainFramebuffers 	= create_swapchain_framebuffer(device, swapChainImageViews, imageCount, renderPass, extent);
-	VkCommandPool commandPool 				= create_command_pool(device, indices);
-	VkCommandBuffer commandBuffer 			= create_command_buffer(device, commandPool);
-	VkSemaphore imageAvailableSemaphores 	= create_semaphore(device);
-	VkSemaphore renderFinishedSemaphores 	= create_semaphore(device);
-	VkFence inFlightFence 					= create_fence(device);
+	VkExtent2D extent = create_swap_extent(window, capabilities);
+	uint32_t imageCount = create_image_count(capabilities);
+	VkSwapchainKHR swapChain = create_swapchain(device, surface, imageCount, surfaceFormat, extent, indices, capabilities, presentMode);
+	VkImageView *swapChainImageViews = create_swapchain_image_views(device, swapChain, surfaceFormat.format, imageCount);
+	VkRenderPass renderPass = create_render_pass(device, surfaceFormat.format);
+	VkPipelineLayout pipelineLayout = create_pipeline_layout(device);
+	VkPipeline graphicsPipeline = create_graphics_pipeline(device, extent, renderPass, pipelineLayout);
+	VkFramebuffer *swapChainFramebuffers = create_swapchain_framebuffer(device, swapChainImageViews, imageCount, renderPass, extent);
+	VkCommandPool commandPool = create_command_pool(device, indices);
+	VkCommandBuffer commandBuffer = create_command_buffer(device, commandPool);
+	VkSemaphore imageAvailableSemaphores = create_semaphore(device);
+	VkSemaphore renderFinishedSemaphores = create_semaphore(device);
+	VkFence inFlightFence = create_fence(device);
 
 	// main loop
 
-    while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
+	while (!glfwWindowShouldClose(window))
+	{
+		glfwPollEvents();
 
 		// draw frame
 
-	    vkWaitForFences(device, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
-	    vkResetFences(device, 1, &inFlightFence);
+		vkWaitForFences(device, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
+		vkResetFences(device, 1, &inFlightFence);
 
-	    uint32_t imageIndex;
-	    vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores, VK_NULL_HANDLE, &imageIndex);
+		uint32_t imageIndex;
+		vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores, VK_NULL_HANDLE, &imageIndex);
 
-	    vkResetCommandBuffer(commandBuffer, /*VkCommandBufferResetFlagBits*/ 0);
+		vkResetCommandBuffer(commandBuffer, /*VkCommandBufferResetFlagBits*/ 0);
 
 		// begin record command buffer
 
-	    VkCommandBufferBeginInfo beginInfo = {
+		VkCommandBufferBeginInfo beginInfo = {
 			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
 			.pNext = NULL,
 			.flags = 0,
 			.pInheritanceInfo = NULL,
 		};
 
-	    VkResult result = vkBeginCommandBuffer(commandBuffer, &beginInfo);
-	    if(result != VK_SUCCESS) printf("failed to begin recording command buffer\n");
+		VkResult result = vkBeginCommandBuffer(commandBuffer, &beginInfo);
+		if (result != VK_SUCCESS) printf("failed to begin recording command buffer\n");
 
 		VkOffset2D offset = {
 			.x = 0,
@@ -120,10 +122,10 @@ int main() {
 
 		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 
-	    vkCmdEndRenderPass(commandBuffer);
+		vkCmdEndRenderPass(commandBuffer);
 
-	    result = vkEndCommandBuffer(commandBuffer);
-		if(result != VK_SUCCESS) printf("failed to record command buffer\n");
+		result = vkEndCommandBuffer(commandBuffer);
+		if (result != VK_SUCCESS) printf("failed to record command buffer\n");
 
 		// end record command buffer
 
@@ -141,8 +143,8 @@ int main() {
 			.pSignalSemaphores = signalSemaphores,
 		};
 
-	    result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFence);
-	    if(result != VK_SUCCESS) printf("failed to submit draw command buffer!");
+		result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFence);
+		if (result != VK_SUCCESS) printf("failed to submit draw command buffer!");
 
 		VkPresentInfoKHR presentInfo = {
 			.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
@@ -155,52 +157,51 @@ int main() {
 			.pResults = NULL,
 		};
 
-	    vkQueuePresentKHR(presentQueue, &presentInfo);
-    }
+		vkQueuePresentKHR(presentQueue, &presentInfo);
+	}
 
-    vkDeviceWaitIdle(device);
+	vkDeviceWaitIdle(device);
 
 	// cleanup
 
-    vkDestroySemaphore(device, renderFinishedSemaphores, NULL);
-    vkDestroySemaphore(device, imageAvailableSemaphores, NULL);
-    vkDestroyFence(device, inFlightFence, NULL);
+	vkDestroySemaphore(device, renderFinishedSemaphores, NULL);
+	vkDestroySemaphore(device, imageAvailableSemaphores, NULL);
+	vkDestroyFence(device, inFlightFence, NULL);
 
-    vkDestroyCommandPool(device, commandPool, NULL);
+	vkDestroyCommandPool(device, commandPool, NULL);
 
-	for(int i = 0; i < imageCount; i++)
+	for (int i = 0; i < imageCount; i++)
 	{
-        vkDestroyFramebuffer(device, swapChainFramebuffers[i], NULL);
-    }
+        	vkDestroyFramebuffer(device, swapChainFramebuffers[i], NULL);
+	}
 
-    vkDestroyPipeline(device, graphicsPipeline, NULL);
-    vkDestroyPipelineLayout(device, pipelineLayout, NULL);
-    vkDestroyRenderPass(device, renderPass, NULL);
+	vkDestroyPipeline(device, graphicsPipeline, NULL);
+	vkDestroyPipelineLayout(device, pipelineLayout, NULL);
+	vkDestroyRenderPass(device, renderPass, NULL);
 
-	for(int i = 0; i < imageCount; i++)
+	for (int i = 0; i < imageCount; i++)
 	{
-        vkDestroyImageView(device, swapChainImageViews[i], NULL);
-    }
+        	vkDestroyImageView(device, swapChainImageViews[i], NULL);
+	}
 
-    vkDestroySwapchainKHR(device, swapChain, NULL);
-    vkDestroyDevice(device, NULL);
+	vkDestroySwapchainKHR(device, swapChain, NULL);
+	vkDestroyDevice(device, NULL);
 
-    if (validation_layers_enabled)
-	{
+	if (validation_layers_enabled) {
 		PFN_vkDestroyDebugUtilsMessengerEXT func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-		if(func == VK_NULL_HANDLE) printf("failed to load vkDestroyDebugUtilsMessengerEXT function\n");
+		if (func == VK_NULL_HANDLE) printf("failed to load vkDestroyDebugUtilsMessengerEXT function\n");
 
 		func(instance, debugMessenger, NULL);
-    }
+	}
 
-    vkDestroySurfaceKHR(instance, surface, NULL);
-    vkDestroyInstance(instance, NULL);
+	vkDestroySurfaceKHR(instance, surface, NULL);
+	vkDestroyInstance(instance, NULL);
 
-    glfwDestroyWindow(window);
+	glfwDestroyWindow(window);
 
-    glfwTerminate();
+	glfwTerminate();
 
-    return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
 
 
