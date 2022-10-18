@@ -15,7 +15,6 @@
 
 int main()
 {
-
 	bool validation_layers_enabled = true;
 
 	uint32_t validation_layer_count = 1;
